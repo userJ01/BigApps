@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+    <title>My DashBoard-Products</title>
+    <link rel="icon" sizes="32x32" type="image/png" href="/favicon-32x32.png">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css" />
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+    <style>
+            /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+            .row.content {height: 1500px}
+            
+            /* Set gray background color and 100% height */
+            .sidenav {
+              background-color: #f1f1f1;
+              height: 100%;
+            }
+            
+            /* Set black background color, white text and some padding */
+            footer {
+              background-color: #555;
+              color: white;
+              padding: 15px;
+            }
+            
+            /* On small screens, set height to 'auto' for sidenav and grid */
+            @media screen and (max-width: 767px) {
+              .sidenav {
+                height: auto;
+                padding: 15px;
+              }
+              .row.content {height: auto;} 
+            }
+          </style>
+	</head>
+	<body>
+        
+<div class="container-fluid">
+    <div class="row content">
+      <div class="col-sm-1 sidenav">
+        <h4>DashBoard</h4>
+        <ul class="nav nav-pills nav-stacked">
+          <li ><a href="/">Home</a></li>
+          <li><a href="/manage/categories">All Categories</a></li>
+          <li class="active"><a href="/manage/products">All Products</a></li>
+          <li><a href="/manage/orders">All Orders</a></li>
+        </ul><br>
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search Product">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button">
+              <span class="glyphicon glyphicon-search"></span>
+            </button>
+          </span>
+        </div>
+      </div>
+  
+      <div class="col-sm-9">
+        <div class="row">
+          <p>
+            <button id="CreateProductOne" itemid="01" type="button" class="btn btn-link btn-sm">Create New Product</button>
+        </p>
+        <table class="tableproduct table" id="tableproduct" style="">
+            <thead>
+                <tr>
+                    <th>
+                        Title
+                    </th>
+                    <th>
+                        Picture
+                    </th>
+                    <th>
+                        Category
+                    </th>
+                    <th>
+                        Enable
+                    </th>
+                    <th>
+                        Created
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <!--<td>
+                <button id="EditProductOne" itemid="@item.id" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalLong">
+                    Edit
+                </button>
+                <button id="DetailsProductOne" itemid="@item.id" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalLong">
+                    Details
+                </button>
+                <button id="DeleteProductOne" itemid="@item.id" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#exampleModalLong">
+                    Delete
+                </button>
+            </td>-->
+                </tr>
+            </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="container-fluid">
+    <p>Footer Text</p>
+  </footer>
+  
+        
+<script type="text/javascript">
+    var table = null;
+    /**temp data of product */
+    var data_SetProd = null;
+    var status_400 = '<h1 style="text-align: center; color: red;">ERROR 400(Bad Request)</h1>';
+    var status_404 = '<h1 style="text-align: center; color: red;">ERROR 404(Page Not Found)</h1>';
+    var status_500 = '<h1 style="text-align: center; color: red;">ERROR 500(Server Error)</h1>';
+
+var u=(location.protocol+'//'+window.location.host+'/api?method=getproducts');
+      var opts = {
+          url: u
+      };
+
+     /*01 root*/
+     $(document).ready(function () {
+        /*02-Show message*/
+        ShowLoad();
+        /*03-Load data table with product*/
+        data_SetProd = getTblOfProdData("getproducts");
+        /*04-Additional function in one*/
+        //AdditionalFunc();
+       
+    });
+    function ShowLoad() {
+        $('.modal-body').css("text-align","center").html('<img  src="images/loader.gif" />'); $('#ModalCategory').modal('show');$('.modal-title').text('Loading Data !!!');
+    }
+    function HideLoad() {
+        $('#ModalCategory').css("text-align", "inherit").modal('hide');
+    }
+    /** Get Data Table Of Product Start*/
+    function getTblOfProdData(MethodName) {
+          var u=(location.protocol+'//'+window.location.host+'/api?method=');
+          //debugger;
+              u+=MethodName;
+              $.ajax({
+                  type: "GET",url: u,
+                  contentType: "application/json; charset=utf-8",
+                  headers: { "X-Method": MethodName},
+                  success: function (data) {
+                      data_SetProd = data;
+                      HideLoad();
+                      tblProducts();
+                  }, statusCode: {
+                      400: function () { $('.modal-body').html(status_400); },
+                      404: function () { $('.modal-body').html(status_404); },
+                      500: function () { $('.modal-body').html(status_500); }
+                  }, error: function (xhr, status, error) { }
+              });
+          return data_SetProd;
+      }
+    /** Get Data Table Of Product End*/
+
+    /**Data Table Of Products -Start */
+    function tblProducts() {
+        table = $('#tableproduct').DataTable({
+            "processing": false,
+            "serverSide": false,
+            "deferRender": true,
+            "destroy": true,
+            "data": data_SetProd,
+            "lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+            "columns": [
+                {
+                    "orderable": true,
+                    "data": "title",
+                    render: function (data, type, row, meta) {
+                        return data;
+                    }
+                },
+                { 
+                  "data": "catid",
+                    render: function (data, type, row, meta) {
+                        return data;
+                    }
+                },
+                { 
+                    "data": "enable" ,
+                    "orderable": false,
+                    "defaultContent": "",
+                    render: function (data, type, row, meta) {
+                        return ' <input type="checkbox" disabled="disabled" checked="'+row.enable+'" />';
+                    }
+                 },
+                {
+                    "orderable": false,
+                    "data": "picture",
+                    "defaultContent": "",
+                    render: function (data, type, row, meta) {
+                      return '<img src="' + row.picture+'" width="100" alt="" title="" />';
+                    }
+                },
+                { "data": "created" },
+                {
+                    "orderable": false,
+                    "data": "",
+                    "defaultContent": "",
+                    render: function (data, type, row, meta) {
+                        //console.log(data, type, row, meta)
+                        var html = "";
+                        html += '<button id="EditCategoryOne" onclick="CategoryOne(\'Edit\')" itemid="' + row.id + '" type="button" class=" btn btn-light btn-sm" data-toggle="modal" data-target="#exampleModalLong">';
+                        html += '    Edit';
+                        html += '</button>';
+                        html += '<button id="DetailsCategoryOne" onclick="CategoryOne(\'Details\')" itemid="' + row.id + '" type="button" class="CategoryOne btn btn-info btn-sm" data-toggle="modal" data-target="#exampleModalLong">';
+                        html += '        Details';
+                        html += '</button>';
+                        html += '<button id="DeleteCategoryOne" onclick="CategoryOne(\'Delete\')" itemid="' + row.id + '" type="button" class="CategoryOne btn btn-danger btn-sm" data-toggle="modal" data-target="#exampleModalLong">';
+                        html += '         Delete';
+                        html += '</button>';
+                        return html;
+                    }
+                }
+            ],
+            "initComplete": function (settings, json) {
+            },
+            "order": [[0, 'asc']]
+        });
+
+        var detailRows = [];
+
+        $('#table tbody').on('click', 'tr td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var CatID = $(this).children().attr("catid");
+            var row = table.row(tr);
+            var idx = $.inArray(tr.attr('id'), detailRows);
+
+            if (row.child.isShown()) {
+                tr.removeClass('details');
+                row.child.hide();
+                // Remove from the 'open' array
+                detailRows.splice(idx, 1);
+            }
+            else {
+                tr.addClass('details');
+                // Add to the 'open' array
+                if (idx === -1) {
+                    detailRows.push(tr.attr('id'));
+                }
+            }
+        });
+
+        // On each draw, loop over the `detailRows` array and show any child rows
+        table.on('draw', function () {
+            $.each(detailRows, function (i, id) {
+                $(('#' + id + ' td.details-control')).trigger('click');
+            });
+        });
+        ////end table roduct
+    }
+    /**Data Table Of Products -End */
+    
+
+
+</script>
+    </body>
+</html>
